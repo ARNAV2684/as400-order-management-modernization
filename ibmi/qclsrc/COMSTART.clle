@@ -1,0 +1,47 @@
+/* ================================================================== */
+/* COMSTART - Entry point of the COM application                      */
+/* Author: Arnav    Created: 2026-10-06                               */
+/*                                                                    */
+/* Start the app with:  CALL COM022LIB/COMSTART                       */
+/*                                                                    */
+/* 1. CHGCURLIB: every job starts with OLDLIB as current library,  */
+/*    which has old same-named files. This makes COM022LIB current    */
+/*    for the rest of the session.                                    */
+/* 2. STRCMTCTL: ORDPGM opens files with COMMIT, which fails (CPF4293)*/
+/*    unless commitment control is active - so the app must start     */
+/*    here, not with CALL MENUPGM.                                    */
+/*    CMTSCOPE(*JOB): this CL runs in the default activation group,   */
+/*    ORDPGM in COMAG - only a job-wide commit definition covers both.*/
+/*    CPF8351 = already active: a previous run crashed before         */
+/*    ENDCMTCTL, maybe in the middle of a save. ROLLBACK its leftover */
+/*    changes first - otherwise the next save's COMMIT would make a   */
+/*    half-written order permanent.                                   */
+/* 3. CALL MENUPGM: the programs run in activation group COMAG.       */
+/* 4. ROLLBACK: safety net - every save COMMITs or ROLLBACKs itself,  */
+/*    so normally nothing is pending here.                            */
+/* 5. RCLACTGRP COMAG: on exit, close that activation group - its     */
+/*    open files and storage are freed, so the next start is clean.   */
+/*    (CPF1653 = it doesn't exist, e.g. MENUPGM failed to start.)     */
+/* 6. ENDCMTCTL last: it refuses while COMMIT files are still open.   */
+/*                                                                    */
+/* Change log:                                                        */
+/*   2026-10-06  Arnav  Created (Sprint 2, checkpoint 2B)             */
+/*   2026-10-12  Arnav  STRCMTCTL / ROLLBACK / ENDCMTCTL (Sprint 6)   */
+/* ================================================================== */
+PGM
+
+  CHGCURLIB CURLIB(COM022LIB)
+
+  STRCMTCTL LCKLVL(*CHG) CMTSCOPE(*JOB)
+  MONMSG MSGID(CPF8351) EXEC(ROLLBACK)
+
+  CALL PGM(MENUPGM)
+
+  ROLLBACK
+
+  RCLACTGRP ACTGRP(COMAG)
+  MONMSG MSGID(CPF1653)
+
+  ENDCMTCTL
+
+ENDPGM

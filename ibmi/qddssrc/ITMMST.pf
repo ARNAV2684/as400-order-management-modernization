@@ -1,0 +1,26 @@
+     A* ======================================================================
+     A* ITMMST - Item Master
+     A* Author: Arnav    Created: 2026-10-05
+     A*
+     A* STOCKQTY is changed by ORDPGM on order add/edit/delete, inside the
+     A* same commit as the order (decision D6) - so this file is journaled.
+     A*
+     A* Change log:
+     A*   2026-10-05  Arnav  Created (Sprint 1)
+     A* ======================================================================
+     A                                      UNIQUE
+     A          R ITMREC                    TEXT('Item master record')
+     A            ITEMNO         7P 0       TEXT('Item number')
+     A                                      COLHDG('Item' 'No')
+     A* 50 long to match ORDDTL.ITEMDESC (D11 - the PDF had 50 vs 30).
+     A            ITEMDESC      50A         TEXT('Item description')
+     A                                      COLHDG('Description')
+     A            CATEGORY      20A         TEXT('Item category')
+     A                                      COLHDG('Category')
+     A            UNITPRICE      9P 2       TEXT('Unit price')
+     A                                      COLHDG('Unit' 'Price')
+     A            STOCKQTY       9P 0       TEXT('Available stock quantity')
+     A                                      COLHDG('Stock' 'Qty')
+     A            STATUS         1A         TEXT('Status A=Active I=Inactive')
+     A                                      COLHDG('Sts')
+     A          K ITEMNO

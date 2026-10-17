@@ -1,0 +1,191 @@
+     A* ======================================================================
+     A* ORDDSPF - Order maintenance screens
+     A* Author: Arnav    Created: 2026-10-06
+     A*
+     A* Formats: ORDSFL/ORDCTL  = order list (load-all subfile) + search
+     A*          ORDKEY         = key legend under the list (line 23)
+     A*          LINSFL/LINCTL  = one order: header (control record) +
+     A*                           its lines (second subfile)
+     A*          LINFTR         = total + key legend under the lines
+     A*          MSGSFL/MSGCTL  = message subfile on line 24
+     A*
+     A* Indicator map:
+     A*   03 F3=Exit app  05 F5=Create  06 F6=Edit  07 F7=Delete
+     A*   10 F10=Save     12 F12=Back/Cancel
+     A*   31 SFLDSP 32 SFLDSPCTL 33 SFLCLR 34 SFLEND  - order list subfile
+     A*   36 SFLDSP 37 SFLDSPCTL 38 SFLCLR 39 SFLEND  - order lines subfile
+     A*   41 protect the header input fields (all modes except ADD)
+     A*   42 protect a row's input fields (DISPLAY / DELETE) - PER ROW
+     A*   43 a saved line in EDIT: Item No protected (A4), Opt open - PER ROW
+     A*   44 show '(assigned on save)' instead of an order number (ADD)
+     A*   51 Customer No in error
+     A*   61 a row's Item No in error   62 a row's Qty in error
+     A*   63 a row's Opt in error (COM0031)  - 61-63 PER ROW:
+     A*      a subfile record keeps the indicators it was written/updated with
+     A*   98 message subfile end marker
+     A*
+     A* Lines subfile: SFLSIZ 25 / SFLPAG 5 - the SYSTEM pages (Arnav's
+     A* decision 2026-10-09): no 'Page X of Y', no COM0028/29. 25 rows =
+     A* the max lines per order, so COM0030 can't happen.
+     A* Order date: a real DATE field (*ISO), checked by the system - so
+     A* COM0032 is not used (same decision as ORDINQF).
+     A* Screen field names (LORDNO, HCUSTNO, DQTY...) differ from the file
+     A* fields on purpose: nothing is shared, ORDPGM moves data explicitly.
+     A*
+     A* Change log:
+     A*   2026-10-09  Arnav  Created (Sprint 4, checkpoints 4A + 4B)
+     A*   2026-10-09  Arnav  Add mode: input header + lines, F10 (Sprint 5)
+     A*   2026-10-13  Arnav  Edit: Opt column, hidden DOLDQTY, ind 43 / 63;
+     A*                      description 28 -> 24 to make room (Sprint 6C)
+     A* ======================================================================
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      CA03(03 'F3=Exit')
+     A                                      CA12(12 'F12=Back')
+     A*
+     A* Order list row
+     A          R ORDSFL                    SFL
+     A            SEL            1A  B  7  3
+     A                                      DSPATR(UL)
+     A            LORDNO         7Y 0O  7  6EDTCDE(Z)
+     A            LDATE         10A  O  7 15
+     A            LCUSTNO        7Y 0O  7 27EDTCDE(Z)
+     A            LNAME         28A  O  7 36
+     A            LTOTAL        11Y 2O  7 66EDTCDE(1)
+     A*
+     A* Order list control: heading + Customer No search field
+     A          R ORDCTL                    SFLCTL(ORDSFL)
+     A                                      SFLSIZ(9999)
+     A                                      SFLPAG(0010)
+     A                                      OVERLAY
+     A                                      CF05(05 'F5=Create')
+     A                                      CF06(06 'F6=Edit')
+     A                                      CF07(07 'F7=Delete')
+     A  31                                  SFLDSP
+     A  32                                  SFLDSPCTL
+     A  33                                  SFLCLR
+     A  34                                  SFLEND(*MORE)
+     A                                  1  2'ORDLIST'
+     A                                  1 23'ORDER MAINTENANCE - ORDER LIST'
+     A                                      DSPATR(HI)
+     A                                  1 72DATE EDTCDE(Y)
+     A                                  2 71USER
+     A                                  3  2'Customer No (blank = all):'
+     A            SRCHCUST       7Y 0B  3 30EDTCDE(Z)
+     A                                      DSPATR(UL)
+     A                                  5  2'Type X, then Enter=Display  -
+     A                                      F6=Edit  F7=Delete'
+     A                                      COLOR(BLU)
+     A                                  6  2'Sel'
+     A                                      DSPATR(UL)
+     A                                  6  6'Order No'
+     A                                      DSPATR(UL)
+     A                                  6 15'Date'
+     A                                      DSPATR(UL)
+     A                                  6 27'Cust No'
+     A                                      DSPATR(UL)
+     A                                  6 36'Customer Name'
+     A                                      DSPATR(UL)
+     A                                  6 76'Total'
+     A                                      DSPATR(UL)
+     A*
+     A* Key legend under the list (a control record may not have
+     A* fields below its subfile - CPD7812)
+     A          R ORDKEY                    OVERLAY
+     A                                 23  2'F3=Exit  F5=Create  F6=Edit  -
+     A                                      F7=Delete  F12=Back'
+     A                                      COLOR(BLU)
+     A*
+     A* Order line row (one per line; 25 rows in ADD / EDIT)
+     A* DOLDQTY (hidden): the saved qty of a line, for the net stock change
+     A* 'Protect if 42 OR 43' = ONE DSPATR(PR): a 2nd DSPATR(PR) on the same
+     A* field is a duplicate keyword (CPD7518). OR = 'O' in column 7.
+     A          R LINSFL                    SFL
+     A            DOPT           1A  B  9  3
+     A N43
+     AO 42                                  DSPATR(PR)
+     A  63                                  DSPATR(RI PC)
+     A  43N42                               DSPATR(UL)
+     A            DLINE          3Y 0O  9  6EDTCDE(Z)
+     A            DITEM          7Y 0B  9 10EDTCDE(Z)
+     A  42
+     AO 43                                  DSPATR(PR)
+     A  61                                  DSPATR(RI PC)
+     A N42N43                               DSPATR(UL)
+     A            DDESC         24A  O  9 18
+     A            DQTY           7Y 0B  9 43EDTCDE(Z)
+     A  42                                  DSPATR(PR)
+     A  62                                  DSPATR(RI PC)
+     A N42                                  DSPATR(UL)
+     A            DPRICE         9Y 2O  9 53EDTCDE(1)
+     A            DAMT          11Y 2O  9 66EDTCDE(1)
+     A            DOLDQTY        7Y 0H
+     A*
+     A* Order header = the lines' control record (shown above them)
+     A          R LINCTL                    SFLCTL(LINSFL)
+     A                                      SFLSIZ(0025)
+     A                                      SFLPAG(0005)
+     A                                      OVERLAY
+     A                                      CF10(10 'F10=Save')
+     A  36                                  SFLDSP
+     A  37                                  SFLDSPCTL
+     A  38                                  SFLCLR
+     A  39                                  SFLEND(*MORE)
+     A                                  1  2'ORDDTL'
+     A                                  1 28'ORDER ENTRY - COM'
+     A                                      DSPATR(HI)
+     A                                  1 64'Mode:'
+     A            HMODE          8A  O  1 70DSPATR(HI)
+     A                                  2 71USER
+     A                                  3  2'Order No . . :'
+     A* Same position, mutually exclusive: the number (N44) or the text (44)
+     A N44        HORDNO         7Y 0O  3 17EDTCDE(Z)
+     A  44                              3 17'(assigned on save)'
+     A                                  3 40'Order Date . :'
+     A            HORDDATE        L  B  3 55DATFMT(*ISO)
+     A  41                                  DSPATR(PR)
+     A N41                                  DSPATR(UL)
+     A                                  4  2'Customer No  :'
+     A            HCUSTNO        7Y 0B  4 17EDTCDE(Z)
+     A  41                                  DSPATR(PR)
+     A  51                                  DSPATR(RI PC)
+     A N41                                  DSPATR(UL)
+     A                                  4 40'Name . . . . :'
+     A            HNAME         26A  O  4 55
+     A                                  5  2'Status . . . :'
+     A            HSTATUS        1A  O  5 17
+     A                                  8  2'Opt'
+     A                                      DSPATR(UL)
+     A                                  8  6'Ln'
+     A                                      DSPATR(UL)
+     A                                  8 10'Item No'
+     A                                      DSPATR(UL)
+     A                                  8 18'Description'
+     A                                      DSPATR(UL)
+     A                                  8 47'Qty'
+     A                                      DSPATR(UL)
+     A                                  8 59'Price'
+     A                                      DSPATR(UL)
+     A                                  8 74'Amount'
+     A                                      DSPATR(UL)
+     A*
+     A* Total + mode-dependent key legend (own record, CPD7812)
+     A          R LINFTR                    OVERLAY
+     A                                 16 50'Total Amount:'
+     A            HTOTAL        11Y 2O 16 66EDTCDE(1)
+     A                                      DSPATR(HI)
+     A            LEGEND        78A  O 23  2COLOR(BLU)
+     A*
+     A* Message subfile - same as the other display files
+     A          R MSGSFL                    SFL
+     A                                      SFLMSGRCD(24)
+     A            MSGKEY                    SFLMSGKEY
+     A            PGMQ                      SFLPGMQ(10)
+     A          R MSGCTL                    SFLCTL(MSGSFL)
+     A                                      OVERLAY
+     A                                      SFLDSP
+     A                                      SFLDSPCTL
+     A                                      SFLINZ
+     A  98                                  SFLEND
+     A                                      SFLSIZ(0002)
+     A                                      SFLPAG(0001)
+     A            PGMQ                      SFLPGMQ(10)

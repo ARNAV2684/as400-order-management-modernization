@@ -1,0 +1,71 @@
+/* ================================================================== */
+/* SETUPJRN - Journal COM's files (needed for commitment control)     */
+/* Author: Arnav    Created: 2026-10-12                               */
+/*                                                                    */
+/* Re-runnable: objects that already exist / files already journaled  */
+/* are skipped (MONMSG), so calling it twice changes nothing.         */
+/*                                                                    */
+/* Journaled: ORDHDR ORDDTL ITMMST ORDAUD (PDF section 8.1) + ITMPRCH */
+/* (extra): ORDPGM's stock UPDATE runs under commit and fires the SQL */
+/* trigger ITMPRCHTRG - an insert under commit into an unjournaled    */
+/* table fails. CSTMST is not updated under commit, so it isn't here. */
+/* LFs (ORDDTLF...) need nothing: their changes go through the PF.    */
+/* Receiver COMJRN0001: the handoff's COMJRNR0001 has 11 characters   */
+/* (max 10, CPD0074). Ending in digits lets the system number the     */
+/* next receivers itself (COMJRN0002...).                             */
+/*                                                                    */
+/* IMAGES(*BOTH): before + after image of every change (ROLLBACK and  */
+/* the PUB400 audit view need the before image).                      */
+/* OMTJRNE(*OPNCLO): no entry for every file open/close - keeps the   */
+/* journal (and JRNQRY's output) to real changes only.                */
+/*                                                                    */
+/* Change log:                                                        */
+/*   2026-10-12  Arnav  Created (Sprint 6, checkpoint 6A)             */
+/* ================================================================== */
+PGM
+
+  DCL VAR(&LIB)  TYPE(*CHAR) LEN(10) VALUE('COM022LIB')
+  DCL VAR(&FILE) TYPE(*CHAR) LEN(10)
+
+  /* Create the journal (and its first receiver) only when it is      */
+  /* missing. Not "create + MONMSG": on a re-run CRTJRN fails with    */
+  /* CPF7015 (receiver already attached), not CPF7010 - unmonitored,  */
+  /* that left the job waiting on an inquiry message (MSGW).          */
+  /* MNGRCV(*SYSTEM) default: when the receiver fills up, the system  */
+  /* attaches COMJRN0002 by itself.                                   */
+  CHKOBJ OBJ(&LIB/COMJRN) OBJTYPE(*JRN)
+  MONMSG MSGID(CPF9801) EXEC(DO)              /* not found: create   */
+    CRTJRNRCV JRNRCV(&LIB/COMJRN0001) TEXT('COM - journal receiver')
+    MONMSG MSGID(CPF7010)                     /* left from a failed  */
+                                              /* earlier run: reuse  */
+    CRTJRN JRN(&LIB/COMJRN) JRNRCV(&LIB/COMJRN0001) +
+           TEXT('COM - journal')
+  ENDDO
+
+  CHGVAR &FILE 'ORDHDR'
+  CALLSUBR JRNFILE
+  CHGVAR &FILE 'ORDDTL'
+  CALLSUBR JRNFILE
+  CHGVAR &FILE 'ITMMST'
+  CALLSUBR JRNFILE
+  CHGVAR &FILE 'ORDAUD'
+  CALLSUBR JRNFILE
+  CHGVAR &FILE 'ITMPRCH'
+  CALLSUBR JRNFILE
+
+  SNDPGMMSG MSGID(CPF9897) MSGF(QCPFMSG) MSGTYPE(*COMP) +
+            MSGDTA('SETUPJRN: 5 files journaled to' *BCAT &LIB +
+                   *TCAT '/COMJRN.')
+  RETURN
+
+  /* ---------------------------------------------------------------- */
+  /* JRNFILE: start journaling &FILE (one file per call, so a file    */
+  /* that is already journaled doesn't stop the others)               */
+  /* ---------------------------------------------------------------- */
+  SUBR SUBR(JRNFILE)
+    STRJRNPF FILE(&LIB/&FILE) JRN(&LIB/COMJRN) IMAGES(*BOTH) +
+             OMTJRNE(*OPNCLO)
+    MONMSG MSGID(CPF7030 CPF7032)             /* already journaled   */
+  ENDSUBR
+
+ENDPGM

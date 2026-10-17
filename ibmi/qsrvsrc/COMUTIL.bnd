@@ -1,0 +1,34 @@
+/* ================================================================== */
+/* COMUTIL - Binder source: what service program COMUTIL exports      */
+/* Author: Arnav    Created: 2026-10-06                               */
+/*                                                                    */
+/* Only procedures listed here can be called from outside COMUTIL.    */
+/* The system computes a SIGNATURE (fingerprint) from each export     */
+/* list; programs bound to COMUTIL remember the signature they were   */
+/* bound with and check it every time they start.                     */
+/*                                                                    */
+/* *CURRENT = today's export list (new signature, used by programs    */
+/*            compiled from now on).                                  */
+/* *PRV     = the OLD list, kept unchanged. Its signature equals the  */
+/*            one MENUPGM and CUSTPGM were bound with, so they keep   */
+/*            working WITHOUT being recompiled.                       */
+/* RULE: add new exports at the END of *CURRENT only - never reorder  */
+/* or remove, or old programs would call the wrong procedure.         */
+/*                                                                    */
+/* Change log:                                                        */
+/*   2026-10-06  Arnav  Created (Sprint 2, checkpoint 2A)             */
+/*   2026-10-07  Arnav  + MSGDATA2; old list kept as *PRV (Sprint 3)  */
+/*   2026-10-07  Arnav  SendMsg/ClearMsgs got a PgmQ parameter. The   */
+/*      export LIST is unchanged, so the signature is unchanged - the  */
+/*      binder can't catch a parameter change: ALL callers recompiled. */
+/* ================================================================== */
+STRPGMEXP PGMLVL(*CURRENT)
+  EXPORT SYMBOL(SENDMSG)
+  EXPORT SYMBOL(CLEARMSGS)
+  EXPORT SYMBOL(MSGDATA2)
+ENDPGMEXP
+
+STRPGMEXP PGMLVL(*PRV)
+  EXPORT SYMBOL(SENDMSG)
+  EXPORT SYMBOL(CLEARMSGS)
+ENDPGMEXP

@@ -1,0 +1,24 @@
+     A* ======================================================================
+     A* CSTMST - Customer Master
+     A* Author: Arnav    Created: 2026-10-05
+     A*
+     A* Change log:
+     A*   2026-10-05  Arnav  Created (Sprint 1)
+     A* ======================================================================
+     A                                      UNIQUE
+     A          R CSTREC                    TEXT('Customer master record')
+     A            CUSTNO         7P 0       TEXT('Customer number')
+     A                                      COLHDG('Cust' 'No')
+     A            CUSTNAME      40A         TEXT('Customer name')
+     A                                      COLHDG('Customer' 'Name')
+     A            ADDRESS       50A         TEXT('Street address')
+     A                                      COLHDG('Address')
+     A            CITY          30A         TEXT('City')
+     A                                      COLHDG('City')
+     A            STATE         20A         TEXT('State')
+     A                                      COLHDG('State')
+     A* STATUS also exists in ITMMST and ORDHDR: RPG programs that open
+     A* more than one of them use PREFIX so the fields don't share storage.
+     A            STATUS         1A         TEXT('Status A=Active I=Inactive')
+     A                                      COLHDG('Sts')
+     A          K CUSTNO

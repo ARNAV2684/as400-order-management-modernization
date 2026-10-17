@@ -1,0 +1,60 @@
+     A* ======================================================================
+     A* MENUDSPF - Main menu screen
+     A* Author: Arnav    Created: 2026-10-06
+     A*
+     A* Indicator map:
+     A*   03     F3 = Exit
+     A*   50     Option field in error (reverse image + cursor there)
+     A*   98     Message subfile end marker ('+' when more messages)
+     A*
+     A* Message subfile (MSGSFL + MSGCTL): shows the messages that
+     A* COMUTIL's SendMsg puts in MENUPGM's own message queue, on line 24.
+     A* PGMQ is set by MENUPGM to its own name; SendMsg uses the same.
+     A* Write MSGCTL first, then EXFMT MENU; OVERLAY on both so neither
+     A* erases the other.
+     A*
+     A* Change log:
+     A*   2026-10-06  Arnav  Created (Sprint 2, checkpoint 2B)
+     A*   2026-10-09  Arnav  Option 4 Order Inquiry (Sprint 4, 4C)
+     A* ======================================================================
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      CA03(03 'F3=Exit')
+     A*
+     A* Main screen
+     A          R MENU                      OVERLAY
+     A                                  1  2'MENU'
+     A                                  1 26'RETAIL ORDER ENTRY - MAIN MENU'
+     A                                      DSPATR(HI)
+     A                                  1 72DATE EDTCDE(Y)
+     A                                  2 71USER
+     A                                  5  9'1. Customer Maintenance'
+     A                                  6  9'2. Item Maintenance'
+     A                                  7  9'3. Order Maintenance'
+     A                                  8  9'4. Order Inquiry (SQL)'
+     A                                 10  9'Option:'
+     A* 1A, not numeric: a letter reaches the program, which answers
+     A* with our COM0001 instead of a system error.
+     A            OPTION         1A  B 10 17
+     A  50                                  DSPATR(RI PC)
+     A N50                                  DSPATR(UL)
+     A                                 23  2'F3=Exit'
+     A                                      COLOR(BLU)
+     A*
+     A* Message subfile: one row per message, shown on line 24
+     A          R MSGSFL                    SFL
+     A                                      SFLMSGRCD(24)
+     A            MSGKEY                    SFLMSGKEY
+     A            PGMQ                      SFLPGMQ(10)
+     A*
+     A* Message subfile control: SFLINZ loads it from the queue named
+     A* in PGMQ every time this record is written.
+     A          R MSGCTL                    SFLCTL(MSGSFL)
+     A                                      OVERLAY
+     A                                      SFLDSP
+     A                                      SFLDSPCTL
+     A                                      SFLINZ
+     A* SFLEND must be conditioned; 98 is set on once by the program.
+     A  98                                  SFLEND
+     A                                      SFLSIZ(0002)
+     A                                      SFLPAG(0001)
+     A            PGMQ                      SFLPGMQ(10)

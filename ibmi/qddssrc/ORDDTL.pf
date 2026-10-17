@@ -1,0 +1,27 @@
+     A* ======================================================================
+     A* ORDDTL - Order Detail (order lines)
+     A* Author: Arnav    Created: 2026-10-05
+     A*
+     A* No key on purpose - keyed access goes through the LFs:
+     A*   ORDDTLF (ORDNO+LINENO) and ORDDTLL2 (ITEMNO).
+     A* ITEMDESC and PRICE are copied from ITMMST when the line is written,
+     A* so a later price change never alters an existing order.
+     A*
+     A* Change log:
+     A*   2026-10-05  Arnav  Created (Sprint 1)
+     A* ======================================================================
+     A          R ORDDREC                   TEXT('Order detail record')
+     A            ORDNO          7P 0       TEXT('Order number')
+     A                                      COLHDG('Order' 'No')
+     A            LINENO         3P 0       TEXT('Line number')
+     A                                      COLHDG('Line' 'No')
+     A            ITEMNO         7P 0       TEXT('Item number')
+     A                                      COLHDG('Item' 'No')
+     A            ITEMDESC      50A         TEXT('Item description (copied)')
+     A                                      COLHDG('Description')
+     A            QTY            7P 0       TEXT('Quantity ordered')
+     A                                      COLHDG('Qty')
+     A            PRICE          9P 2       TEXT('Unit price (copied)')
+     A                                      COLHDG('Price')
+     A            AMOUNT        11P 2       TEXT('Line amount = QTY x PRICE')
+     A                                      COLHDG('Amount')

@@ -1,0 +1,13 @@
+     A* ======================================================================
+     A* ORDHDRL1 - Orders by Customer
+     A* Author: Arnav    Created: 2026-10-05
+     A*
+     A* Order list search by Customer No (D3), and the 'customer has
+     A* orders?' check before a customer delete (D8, COM0009).
+     A*
+     A* Change log:
+     A*   2026-10-05  Arnav  Created (Sprint 1)
+     A* ======================================================================
+     A          R ORDHREC                   PFILE(ORDHDR)
+     A          K CUSTNO
+     A          K ORDNO
