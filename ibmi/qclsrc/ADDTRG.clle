@@ -1,0 +1,34 @@
+/* ================================================================== */
+/* ADDTRG - Attach audit trigger ORDTRG to ORDHDR (3 events)          */
+/* Author: Arnav    Created: 2026-10-13                               */
+/*                                                                    */
+/* Re-runnable: RPLTRG(*YES) replaces a trigger with the same name.   */
+/* ADDPFTRG needs an exclusive lock on ORDHDR: nobody may have it     */
+/* open (sign off other sessions / leave COMSTART first).             */
+/* ALWREPCHG(*NO): an *AFTER trigger only reads the images.           */
+/*                                                                    */
+/* PUB400 refuses ADDPFTRG for normal users (CPD0032, tested          */
+/* 2026-10-13): there this program is not used - see ORDAUDJV.        */
+/*                                                                    */
+/* Change log:                                                        */
+/*   2026-10-13  Arnav  Created (Sprint 7, checkpoint 7A)             */
+/* ================================================================== */
+PGM
+
+  DCL VAR(&LIB) TYPE(*CHAR) LEN(10) VALUE('COM022LIB')
+
+  ADDPFTRG FILE(&LIB/ORDHDR) TRGTIME(*AFTER) TRGEVENT(*INSERT) +
+           PGM(&LIB/ORDTRG) RPLTRG(*YES) TRG(ORDHDR_INS) +
+           ALWREPCHG(*NO)
+  ADDPFTRG FILE(&LIB/ORDHDR) TRGTIME(*AFTER) TRGEVENT(*UPDATE) +
+           PGM(&LIB/ORDTRG) RPLTRG(*YES) TRG(ORDHDR_UPD) +
+           ALWREPCHG(*NO)
+  ADDPFTRG FILE(&LIB/ORDHDR) TRGTIME(*AFTER) TRGEVENT(*DELETE) +
+           PGM(&LIB/ORDTRG) RPLTRG(*YES) TRG(ORDHDR_DEL) +
+           ALWREPCHG(*NO)
+
+  SNDPGMMSG MSGID(CPF9897) MSGF(QCPFMSG) MSGTYPE(*COMP) +
+            MSGDTA('ADDTRG: ORDTRG attached to' *BCAT &LIB *TCAT +
+                   '/ORDHDR for insert, update and delete.')
+
+ENDPGM

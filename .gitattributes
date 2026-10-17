@@ -1,0 +1,3 @@
+# Keep Unix line endings: shell scripts and IBM i source are pushed to IBM i as-is
+* text=auto eol=lf
+*.xlsx binary

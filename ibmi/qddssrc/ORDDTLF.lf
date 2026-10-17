@@ -1,0 +1,14 @@
+     A* ======================================================================
+     A* ORDDTLF - Order lines by ORDNO + LINENO
+     A* Author: Arnav    Created: 2026-10-05
+     A*
+     A* Reads one order's lines: SETLL ORDNO, then READE until %EOF.
+     A* UNIQUE enforces 'no two lines with the same LINENO on an order'.
+     A*
+     A* Change log:
+     A*   2026-10-05  Arnav  Created (Sprint 1)
+     A* ======================================================================
+     A                                      UNIQUE
+     A          R ORDDREC                   PFILE(ORDDTL)
+     A          K ORDNO
+     A          K LINENO

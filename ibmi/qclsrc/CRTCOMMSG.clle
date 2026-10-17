@@ -1,0 +1,239 @@
+/* ================================================================== */
+/* CRTCOMMSG - Create / refresh message file COMMSGF                  */
+/* Author: Arnav    Created: 2026-10-05                               */
+/*                                                                    */
+/* Re-runnable: each message is removed and re-added, so editing a    */
+/* text here and calling the program again updates COMMSGF in place.  */
+/* (DLTMSGF + recreate would fail while any program has it open.)     */
+/*                                                                    */
+/* Message data: messages with &1/&2 take two *CHAR 20 fields (40     */
+/* bytes). Tested 2026-10-05: *CHAR substitution trims trailing       */
+/* blanks, so 'Only 5 in stock for item 5004.' prints cleanly.        */
+/* The en dash in the handoff texts is replaced by '-' (EBCDIC).      */
+/*                                                                    */
+/* Change log:                                                        */
+/*   2026-10-05  Arnav  Created (Sprint 1, checkpoint 1B)             */
+/*   2026-10-06  Arnav  COM0040 for unbuilt menu options (Sprint 2)   */
+/*   2026-10-09  Arnav  COM0001 says 1 to 4; COM0041/0042 (S4 4C)    */
+/* ================================================================== */
+PGM
+
+  DCL VAR(&LIB)    TYPE(*CHAR) LEN(10)  VALUE('COM022LIB')
+  DCL VAR(&ID)     TYPE(*CHAR) LEN(7)
+  DCL VAR(&SEV)    TYPE(*DEC)  LEN(2 0)
+  DCL VAR(&TXT)    TYPE(*CHAR) LEN(132)
+  DCL VAR(&SECLVL) TYPE(*CHAR) LEN(512)
+  DCL VAR(&HASDTA) TYPE(*LGL)                 /* message uses &1/&2 */
+  DCL VAR(&COUNT)  TYPE(*DEC)  LEN(3 0) VALUE(0)
+  DCL VAR(&CNTTXT) TYPE(*CHAR) LEN(3)
+
+  CRTMSGF MSGF(&LIB/COMMSGF) TEXT('COM - application messages')
+  MONMSG MSGID(CPF2112)                       /* already exists      */
+
+  /* -------------------------------------------------- menu / lists */
+  CHGVAR &ID 'COM0001'
+  CHGVAR &TXT 'Invalid option. Use 1 to 4.'
+  CALLSUBR ERR
+  CHGVAR &ID 'COM0002'
+  CHGVAR &TXT 'Select a row with X first.'
+  CALLSUBR ERR
+  CHGVAR &ID 'COM0003'
+  CHGVAR &TXT 'Select only one row.'
+  CALLSUBR ERR
+
+  /* ------------------------------------------------------ customer */
+  CHGVAR &ID 'COM0004'
+  CHGVAR &TXT 'Customer number must be greater than zero.'
+  CALLSUBR ERR
+  CHGVAR &ID 'COM0005'
+  CHGVAR &TXT 'Customer already exists.'
+  CALLSUBR ERR
+  CHGVAR &ID 'COM0006'
+  CHGVAR &TXT 'Customer not found.'
+  CALLSUBR ERR
+  CHGVAR &ID 'COM0007'
+  CHGVAR &TXT 'Customer name cannot be blank.'
+  CALLSUBR ERR
+  CHGVAR &ID 'COM0008'
+  CHGVAR &TXT 'Status must be A or I.'
+  CALLSUBR ERR
+  CHGVAR &ID 'COM0009'
+  CHGVAR &TXT 'Customer has orders - set Status to I instead of deleting.'
+  CHGVAR &SECLVL ('This customer is used on one or more orders, so it +
+                   cannot be deleted. Edit the customer and set Status +
+                   to I (inactive) instead. An inactive customer cannot +
+                   receive new orders, but its order history is kept.')
+  CALLSUBR ERR
+  CHGVAR &ID 'COM0010'
+  CHGVAR &TXT 'Customer is inactive - orders not allowed.'
+  CALLSUBR ERR
+
+  /* ---------------------------------------------------------- item */
+  CHGVAR &ID 'COM0011'
+  CHGVAR &TXT 'Item number must be greater than zero.'
+  CALLSUBR ERR
+  CHGVAR &ID 'COM0012'
+  CHGVAR &TXT 'Item already exists.'
+  CALLSUBR ERR
+  CHGVAR &ID 'COM0013'
+  CHGVAR &TXT 'Item not found.'
+  CALLSUBR ERR
+  CHGVAR &ID 'COM0014'
+  CHGVAR &TXT 'Item description cannot be blank.'
+  CALLSUBR ERR
+  CHGVAR &ID 'COM0015'
+  CHGVAR &TXT 'Price cannot be negative.'
+  CALLSUBR ERR
+  CHGVAR &ID 'COM0016'
+  CHGVAR &TXT 'Stock cannot be negative.'
+  CALLSUBR ERR
+  CHGVAR &ID 'COM0017'
+  CHGVAR &TXT 'Item is used on orders - set Status to I instead of deleting.'
+  CHGVAR &SECLVL ('This item appears on one or more order lines, so it +
+                   cannot be deleted. Edit the item and set Status to I +
+                   (inactive) instead. An inactive item cannot be added +
+                   to new orders, but existing orders keep it.')
+  CALLSUBR ERR
+
+  /* --------------------------------------------------- order lines */
+  CHGVAR &ID 'COM0018'
+  CHGVAR &TXT 'Item &1 is inactive - cannot be ordered.'
+  CHGVAR &HASDTA '1'
+  CALLSUBR ERR
+  CHGVAR &ID 'COM0019'
+  CHGVAR &TXT 'Only &1 in stock for item &2.'
+  CHGVAR &HASDTA '1'
+  CHGVAR &SECLVL ('The quantity entered is more than the stock available +
+                   for item &2 (&1 in stock). Reduce the quantity, or +
+                   have the item restocked first.')
+  CALLSUBR ERR
+  CHGVAR &ID 'COM0020'
+  CHGVAR &TXT 'Quantity must be greater than zero.'
+  CALLSUBR ERR
+  CHGVAR &ID 'COM0021'
+  CHGVAR &TXT 'Item already on this order - change the quantity instead.'
+  CALLSUBR ERR
+  CHGVAR &ID 'COM0022'
+  CHGVAR &TXT 'Order must have at least one line.'
+  CHGVAR &SECLVL ('An order cannot be saved without lines. Enter an item +
+                   number and quantity on at least one row. To remove an +
+                   order completely, use F7=Delete on the order list.')
+  CALLSUBR ERR
+
+  /* -------------------------------------------------------- orders */
+  CHGVAR &ID 'COM0023'
+  CHGVAR &TXT 'Order not found.'
+  CALLSUBR ERR
+  CHGVAR &ID 'COM0024'
+  CHGVAR &TXT 'Order already exists.'
+  CALLSUBR ERR
+  CHGVAR &ID 'COM0025'
+  CHGVAR &TXT 'Order &1 created.'
+  CHGVAR &HASDTA '1'
+  CALLSUBR INFO
+  CHGVAR &ID 'COM0026'
+  CHGVAR &TXT 'Order &1 deleted.'
+  CHGVAR &HASDTA '1'
+  CALLSUBR INFO
+  CHGVAR &ID 'COM0027'
+  CHGVAR &TXT 'Order &1 changed.'
+  CHGVAR &HASDTA '1'
+  CALLSUBR INFO
+
+  /* ---------------------------------------------- paging / lines   */
+  CHGVAR &ID 'COM0028'
+  CHGVAR &TXT 'Already at first page.'
+  CALLSUBR ERR
+  CHGVAR &ID 'COM0029'
+  CHGVAR &TXT 'Already at last page.'
+  CALLSUBR ERR
+  CHGVAR &ID 'COM0030'
+  CHGVAR &TXT 'Maximum 25 lines per order.'
+  CALLSUBR ERR
+  CHGVAR &ID 'COM0031'
+  CHGVAR &TXT 'Invalid line option. Use D to delete a line.'
+  CALLSUBR ERR
+  CHGVAR &ID 'COM0032'
+  CHGVAR &TXT 'Order date is not valid.'
+  CALLSUBR ERR
+  CHGVAR &ID 'COM0033'
+  CHGVAR &TXT 'Database error on &1 - all changes rolled back.'
+  CHGVAR &HASDTA '1'
+  CHGVAR &SECLVL ('The save failed while updating &1. Everything in this +
+                   save was rolled back: no order, line or stock change +
+                   was kept. Try again; if it happens again, contact +
+                   support.')
+  CALLSUBR ERR
+
+  /* ------------------------------------------------------- general */
+  CHGVAR &ID 'COM0034'
+  CHGVAR &TXT 'Record saved.'
+  CALLSUBR INFO
+  CHGVAR &ID 'COM0035'
+  CHGVAR &TXT 'Record deleted.'
+  CALLSUBR INFO
+  CHGVAR &ID 'COM0036'
+  CHGVAR &TXT 'Invalid selection. Use X.'
+  CHGVAR &SECLVL ('Type X in the Sel column of one row and leave the +
+                   other rows blank. Then press Enter to display that +
+                   row, F6 to edit it or F7 to delete it.')
+  CALLSUBR ERR
+  CHGVAR &ID 'COM0037'
+  CHGVAR &TXT 'No orders found.'
+  CALLSUBR INFO
+
+  /* COM0038/0039 are reserved for Sprint 8 (web: locked / stale).   */
+  CHGVAR &ID 'COM0040'
+  CHGVAR &TXT 'Option not available yet.'
+  CALLSUBR INFO
+
+  /* ------------------------------------------------ order inquiry  */
+  CHGVAR &ID 'COM0041'
+  CHGVAR &TXT 'From date cannot be after To date.'
+  CALLSUBR ERR
+  CHGVAR &ID 'COM0042'
+  CHGVAR &TXT 'Inquiry failed - SQLSTATE &1.'
+  CHGVAR &HASDTA '1'
+  CALLSUBR ERR
+
+  CHGVAR &CNTTXT &COUNT
+  SNDPGMMSG MSGID(CPF9897) MSGF(QCPFMSG) MSGTYPE(*COMP) +
+            MSGDTA('CRTCOMMSG: ' *CAT &CNTTXT *CAT ' messages +
+                    loaded into' *BCAT &LIB *TCAT '/COMMSGF.')
+  RETURN
+
+  /* ---------------------------------------------------------------- */
+  /* ERR / INFO: severity 30 for errors, 0 for success/info, then ADD */
+  /* ---------------------------------------------------------------- */
+  SUBR SUBR(ERR)
+    CHGVAR &SEV 30
+    CALLSUBR ADD
+  ENDSUBR
+
+  SUBR SUBR(INFO)
+    CHGVAR &SEV 0
+    CALLSUBR ADD
+  ENDSUBR
+
+  /* ---------------------------------------------------------------- */
+  /* ADD: replace message &ID, then reset the per-message variables   */
+  /* so the next message never inherits &1/&2 or help text.           */
+  /* ---------------------------------------------------------------- */
+  SUBR SUBR(ADD)
+    RMVMSGD MSGID(&ID) MSGF(&LIB/COMMSGF)
+    MONMSG MSGID(CPF2419)                     /* not there yet: fine */
+
+    IF COND(&SECLVL = ' ') THEN(CHGVAR &SECLVL '*NONE')
+
+    IF COND(&HASDTA) THEN(ADDMSGD MSGID(&ID) MSGF(&LIB/COMMSGF) +
+                          MSG(&TXT) SECLVL(&SECLVL) SEV(&SEV) +
+                          FMT((*CHAR 20) (*CHAR 20)))
+    ELSE CMD(ADDMSGD MSGID(&ID) MSGF(&LIB/COMMSGF) +
+             MSG(&TXT) SECLVL(&SECLVL) SEV(&SEV))
+
+    CHGVAR &COUNT (&COUNT + 1)
+    CHGVAR &HASDTA '0'
+    CHGVAR &SECLVL ' '
+  ENDSUBR
+
+ENDPGM

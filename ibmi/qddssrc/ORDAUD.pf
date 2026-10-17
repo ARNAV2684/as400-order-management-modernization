@@ -1,0 +1,23 @@
+     A* ======================================================================
+     A* ORDAUD - Order Audit Log
+     A* Author: Arnav    Created: 2026-10-05
+     A*
+     A* Written only by trigger program ORDTRG (Sprint 7), never by screens.
+     A* AUDUSER instead of the PDF's USER - USER is reserved in RPG and SQL.
+     A*
+     A* Change log:
+     A*   2026-10-05  Arnav  Created (Sprint 1)
+     A* ======================================================================
+     A          R ORDAREC                   TEXT('Order audit record')
+     A            ORDNO          7P 0       TEXT('Order number')
+     A                                      COLHDG('Order' 'No')
+     A            ACTION         1A         TEXT('Action A=Add U=Upd D=Del')
+     A                                      COLHDG('Act')
+     A            AUDDATE         L         DATFMT(*ISO)
+     A                                      TEXT('Audit date')
+     A                                      COLHDG('Audit' 'Date')
+     A            AUDTIME         T         TIMFMT(*ISO)
+     A                                      TEXT('Audit time')
+     A                                      COLHDG('Audit' 'Time')
+     A            AUDUSER       10A         TEXT('User who made the change')
+     A                                      COLHDG('User')

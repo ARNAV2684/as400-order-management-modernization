@@ -1,0 +1,133 @@
+     A* ======================================================================
+     A* ITEMDSPF - Item maintenance screens
+     A* Author: Arnav    Created: 2026-10-06
+     A*
+     A* Same layout and logic as CUSTDSPF (list subfile, key legend,
+     A* detail in four modes, message subfile); only the fields differ.
+     A*
+     A* Indicator map:
+     A*   03 F3=Exit app      05 F5=Add     06 F6=Edit    07 F7=Delete
+     A*   10 F10=Save/Confirm 12 F12=Back
+     A*   31 SFLDSP  32 SFLDSPCTL  33 SFLCLR  34 SFLEND
+     A*   41 protect Item No (all modes except ADD)
+     A*   42 protect the other fields (DISPLAY, DELETE)
+     A*   51 Item No  52 Description  53 Status  54 Price  55 Stock (errors)
+     A*   98 message subfile end marker
+     A*
+     A* EDTCDE(J): thousands commas, decimal point, '-' after a negative
+     A* number, zero shown as .00 / 0. To type a negative value on a 5250
+     A* screen: type the digits, then press Field- (field minus).
+     A* Description is 50 long - the list shows LDESC (first 30 chars).
+     A*
+     A* Change log:
+     A*   2026-10-07  Arnav  Created (Sprint 3, checkpoint 3B)
+     A* ======================================================================
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      CA03(03 'F3=Exit')
+     A                                      CA12(12 'F12=Back')
+     A*
+     A* List row (one per item)
+     A          R ITEMSFL                   SFL
+     A            SEL            1A  B  6  3
+     A                                      DSPATR(UL)
+     A            ITEMNO         7Y 0O  6  6EDTCDE(Z)
+     A            LDESC         30A  O  6 15
+     A            UNITPRICE      9Y 2O  6 47EDTCDE(J)
+     A            STOCKQTY       9Y 0O  6 62EDTCDE(J)
+     A            STATUS         1A  O  6 79
+     A*
+     A* List control: heading + the subfile
+     A          R ITEMCTL                   SFLCTL(ITEMSFL)
+     A                                      SFLSIZ(9999)
+     A                                      SFLPAG(0010)
+     A                                      OVERLAY
+     A                                      CF05(05 'F5=Add')
+     A                                      CF06(06 'F6=Edit')
+     A                                      CF07(07 'F7=Delete')
+     A  31                                  SFLDSP
+     A  32                                  SFLDSPCTL
+     A  33                                  SFLCLR
+     A  34                                  SFLEND(*MORE)
+     A                                  1  2'ITEMLIST'
+     A                                  1 31'ITEM MAINTENANCE'
+     A                                      DSPATR(HI)
+     A                                  1 72DATE EDTCDE(Y)
+     A                                  2 71USER
+     A                                  4  2'Type X, then Enter=Display  -
+     A                                      F6=Edit  F7=Delete'
+     A                                      COLOR(BLU)
+     A                                  5  2'Sel'
+     A                                      DSPATR(UL)
+     A                                  5  6'Item No'
+     A                                      DSPATR(UL)
+     A                                  5 15'Description'
+     A                                      DSPATR(UL)
+     A                                  5 50'Unit Price'
+     A                                      DSPATR(UL)
+     A                                  5 68'Stock'
+     A                                      DSPATR(UL)
+     A                                  5 77'Sts'
+     A                                      DSPATR(UL)
+     A*
+     A* Key legend (a control record may not have fields below its
+     A* subfile - CPD7812 - so it is a record of its own)
+     A          R ITEMKEY                   OVERLAY
+     A                                 23  2'F3=Exit  F5=Add  F6=Edit  -
+     A                                      F7=Delete  F12=Back'
+     A                                      COLOR(BLU)
+     A*
+     A* Detail: one item. MODE and LEGEND are set by ITEMPGM.
+     A          R ITEMDTL                   OVERLAY
+     A                                      CF10(10 'F10=Save')
+     A                                  1  2'ITEMDTL'
+     A                                  1 31'ITEM MAINTENANCE'
+     A                                      DSPATR(HI)
+     A                                  1 64'Mode:'
+     A            MODE           8A  O  1 70DSPATR(HI)
+     A                                  2 71USER
+     A                                  4  3'Item No . . . :'
+     A            ITEMNO         7Y 0B  4 20EDTCDE(Z)
+     A  41                                  DSPATR(PR)
+     A  51                                  DSPATR(RI PC)
+     A N41                                  DSPATR(UL)
+     A                                  5  3'Description . :'
+     A            ITEMDESC      50A  B  5 20
+     A  42                                  DSPATR(PR)
+     A  52                                  DSPATR(RI PC)
+     A N42                                  DSPATR(UL)
+     A                                  6  3'Category  . . :'
+     A            CATEGORY      20A  B  6 20
+     A  42                                  DSPATR(PR)
+     A N42                                  DSPATR(UL)
+     A                                  7  3'Unit Price  . :'
+     A            UNITPRICE      9Y 2B  7 20EDTCDE(J)
+     A  42                                  DSPATR(PR)
+     A  54                                  DSPATR(RI PC)
+     A N42                                  DSPATR(UL)
+     A                                  8  3'Stock Qty . . :'
+     A            STOCKQTY       9Y 0B  8 20EDTCDE(J)
+     A  42                                  DSPATR(PR)
+     A  55                                  DSPATR(RI PC)
+     A N42                                  DSPATR(UL)
+     A                                  9  3'Status  . . . :'
+     A            STATUS         1A  B  9 20
+     A  42                                  DSPATR(PR)
+     A  53                                  DSPATR(RI PC)
+     A N42                                  DSPATR(UL)
+     A                                  9 24'(A=Active, I=Inactive)'
+     A            LEGEND        78A  O 23  2COLOR(BLU)
+     A*
+     A* Message subfile - same as MENUDSPF / CUSTDSPF
+     A          R MSGSFL                    SFL
+     A                                      SFLMSGRCD(24)
+     A            MSGKEY                    SFLMSGKEY
+     A            PGMQ                      SFLPGMQ(10)
+     A          R MSGCTL                    SFLCTL(MSGSFL)
+     A                                      OVERLAY
+     A                                      SFLDSP
+     A                                      SFLDSPCTL
+     A                                      SFLINZ
+     A  98                                  SFLEND
+     A                                      SFLSIZ(0002)
+     A                                      SFLPAG(0001)
+     A            PGMQ                      SFLPGMQ(10)

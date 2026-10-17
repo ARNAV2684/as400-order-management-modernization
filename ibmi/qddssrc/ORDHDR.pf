@@ -1,0 +1,26 @@
+     A* ======================================================================
+     A* ORDHDR - Order Header
+     A* Author: Arnav    Created: 2026-10-05
+     A*
+     A* ORDNO is assigned from data area NXTORDNO, never typed (D4).
+     A* Customer name is NOT stored - screens look it up from CSTMST.
+     A* Deviation from the PDF (D11): ORDNO, CUSTNO, TOTAMT are packed,
+     A* not zoned, to match the other files.
+     A*
+     A* Change log:
+     A*   2026-10-05  Arnav  Created (Sprint 1)
+     A* ======================================================================
+     A                                      UNIQUE
+     A          R ORDHREC                   TEXT('Order header record')
+     A            ORDNO          7P 0       TEXT('Order number')
+     A                                      COLHDG('Order' 'No')
+     A            ORDDATE         L         DATFMT(*ISO)
+     A                                      TEXT('Order date')
+     A                                      COLHDG('Order' 'Date')
+     A            CUSTNO         7P 0       TEXT('Customer number')
+     A                                      COLHDG('Cust' 'No')
+     A            STATUS         1A         TEXT('Order status O=Open')
+     A                                      COLHDG('Sts')
+     A            TOTAMT        11P 2       TEXT('Order total amount')
+     A                                      COLHDG('Total' 'Amount')
+     A          K ORDNO

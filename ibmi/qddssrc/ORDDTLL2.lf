@@ -1,0 +1,12 @@
+     A* ======================================================================
+     A* ORDDTLL2 - Order lines by Item
+     A* Author: Arnav    Created: 2026-10-05
+     A*
+     A* 'Item used on any order?' check before an item delete (D8, COM0017).
+     A* SETLL + %EQUAL answers it without reading a record.
+     A*
+     A* Change log:
+     A*   2026-10-05  Arnav  Created (Sprint 1)
+     A* ======================================================================
+     A          R ORDDREC                   PFILE(ORDDTL)
+     A          K ITEMNO

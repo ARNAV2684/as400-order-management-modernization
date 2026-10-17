@@ -1,0 +1,60 @@
+     A* ======================================================================
+     A* ORDRPTF - Order summary report (printer file for ORDRPT)
+     A* Author: Arnav    Created: 2026-10-13
+     A*
+     A* Compile: CRTPRTF FILE(COM022LIB/ORDRPTF) SRCFILE(COM022LIB/QDDSSRC)
+     A*            PAGESIZE(66 132) OVRFLW(60)
+     A*   66 lines x 132 columns; from line 60 on the overflow indicator
+     A*   (OF in ORDRPT) turns on -> ORDRPT prints the heading again.
+     A*
+     A* Records: HDR = page heading (SKIPB(1): new page), DTL = one
+     A*          customer, TOT = grand total + end line.
+     A* Printer DDS has no screen line numbers: SPACEB(n) = skip n lines
+     A* before printing, SKIPB(n) = jump to line n of a NEW page.
+     A* DATE / PAGNBR: system fields - the run date and the page number.
+     A* ULINE: the dashed line, filled by ORDRPT (*ALL'-') - shorter than
+     A* a 103-character constant split over 3 continuation lines.
+     A*
+     A* Change log:
+     A*   2026-10-13  Arnav  Created (Sprint 7, checkpoint 7B)
+     A* ======================================================================
+     A*
+     A* Page heading
+     A          R HDR                       SKIPB(1)
+     A                                     1'ORDRPT'
+     A                                    40'COM - ORDER SUMMARY BY CUSTOMER'
+     A                                   100'Date:'
+     A                                   106DATE EDTCDE(Y)
+     A                                   118'Page:'
+     A                                   124PAGNBR EDTCDE(Z)
+     A                                     1'Customers with orders, highest -
+     A                                      total first'
+     A                                      SPACEB(1)
+     A                                     3'Cust No'
+     A                                      SPACEB(2)
+     A                                    14'Customer Name'
+     A                                    57'Orders'
+     A                                    73'Total Value'
+     A                                    91'Average Order'
+     A            ULINE        103A        3SPACEB(1)
+     A*
+     A* One customer
+     A          R DTL                       SPACEB(1)
+     A            RCUSTNO        7S 0      3EDTCDE(Z)
+     A            RNAME         40A       14
+     A            RCOUNT         5S 0     58EDTCDE(Z)
+     A            RTOTAL        13S 2     68EDTCDE(1)
+     A            RAVG          13S 2     88EDTCDE(1)
+     A*
+     A* Grand total + end-of-report line
+     A          R TOT                       SPACEB(1)
+     A            ULINE        103A        3
+     A                                    14'Grand total:'
+     A                                      SPACEB(1)
+     A            GCUST          5S 0     28EDTCDE(Z)
+     A                                    35'customers'
+     A            GCOUNT         5S 0     58EDTCDE(Z)
+     A            GTOTAL        15S 2     65EDTCDE(1)
+     A            GAVG          13S 2     88EDTCDE(1)
+     A                                    46'***  End of report  ***'
+     A                                      SPACEB(3)

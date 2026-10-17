@@ -1,0 +1,94 @@
+     A* ======================================================================
+     A* ORDINQF - Order inquiry screen (SQL)
+     A* Author: Arnav    Created: 2026-10-06
+     A*
+     A* Formats: INQSFL/INQCTL = result rows (load-all subfile); the filter
+     A*                          fields + summary are in the control record
+     A*          INQKEY        = key legend (line 23)
+     A*          MSGSFL/MSGCTL = message subfile (line 24)
+     A*
+     A* Indicator map:
+     A*   03 F3=Exit app  12 F12=Back
+     A*   31 SFLDSP  32 SFLDSPCTL  33 SFLCLR  34 SFLEND
+     A*   51 From date in error (COM0041: after the To date)
+     A*   98 message subfile end marker
+     A*
+     A* FROMDT / TODT are real DATE fields (type L, *ISO = yyyy-mm-dd): the
+     A* SYSTEM rejects an invalid date before ORDINQ sees it (decision
+     A* 2026-10-09: no date-checking code).
+     A*
+     A* Change log:
+     A*   2026-10-09  Arnav  Created (Sprint 4, checkpoint 4C)
+     A* ======================================================================
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      CA03(03 'F3=Exit')
+     A                                      CA12(12 'F12=Back')
+     A*
+     A* Result row (one per order found)
+     A          R INQSFL                    SFL
+     A            IORDNO         7Y 0O  8  2EDTCDE(Z)
+     A            IDATE         10A  O  8 12
+     A            INAME         30A  O  8 24
+     A            ILINES         3Y 0O  8 57EDTCDE(Z)
+     A            ITOTAL        11Y 2O  8 66EDTCDE(1)
+     A*
+     A* Control record: title, filters, summary, column headings
+     A          R INQCTL                    SFLCTL(INQSFL)
+     A                                      SFLSIZ(9999)
+     A                                      SFLPAG(0012)
+     A                                      OVERLAY
+     A  31                                  SFLDSP
+     A  32                                  SFLDSPCTL
+     A  33                                  SFLCLR
+     A  34                                  SFLEND(*MORE)
+     A                                  1  2'ORDINQ'
+     A                                  1 30'ORDER INQUIRY (SQL)'
+     A                                      DSPATR(HI)
+     A                                  1 72DATE EDTCDE(Y)
+     A                                  2 71USER
+     A                                  3  2'From date . . :'
+     A            FROMDT          L  B  3 18DATFMT(*ISO)
+     A  51                                  DSPATR(RI PC)
+     A N51                                  DSPATR(UL)
+     A                                  3 34'To date . . :'
+     A            TODT            L  B  3 48DATFMT(*ISO)
+     A                                      DSPATR(UL)
+     A                                  4  2'Min total . . :'
+     A            MINTOT        11Y 2B  4 18EDTCDE(1)
+     A                                      DSPATR(UL)
+     A                                  5  2'Found . . . . :'
+     A            SCOUNT         7Y 0O  5 18EDTCDE(1)
+     A                                  5 28'orders'
+     A                                  5 40'Total value . :'
+     A            STOTAL        13Y 2O  5 56EDTCDE(1)
+     A                                      DSPATR(HI)
+     A                                  7  2'Order No'
+     A                                      DSPATR(UL)
+     A                                  7 12'Date'
+     A                                      DSPATR(UL)
+     A                                  7 24'Customer Name'
+     A                                      DSPATR(UL)
+     A                                  7 55'Lines'
+     A                                      DSPATR(UL)
+     A                                  7 75'Total'
+     A                                      DSPATR(UL)
+     A*
+     A* Key legend (below the subfile, so its own record - CPD7812)
+     A          R INQKEY                    OVERLAY
+     A                                 23  2'Enter=Search  F12=Back  F3=Exit'
+     A                                      COLOR(BLU)
+     A*
+     A* Message subfile - same as the other display files
+     A          R MSGSFL                    SFL
+     A                                      SFLMSGRCD(24)
+     A            MSGKEY                    SFLMSGKEY
+     A            PGMQ                      SFLPGMQ(10)
+     A          R MSGCTL                    SFLCTL(MSGSFL)
+     A                                      OVERLAY
+     A                                      SFLDSP
+     A                                      SFLDSPCTL
+     A                                      SFLINZ
+     A  98                                  SFLEND
+     A                                      SFLSIZ(0002)
+     A                                      SFLPAG(0001)
+     A            PGMQ                      SFLPGMQ(10)
