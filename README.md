@@ -4,11 +4,11 @@
 
 **A complete IBM i (AS/400) order-entry system in RPG IV, then modernized for the web without rewriting its business rules.**
 
-<img src="docs/media/hero.jpg" alt="The same order 10027 in the 5250 green screen and in the modern web app, both running on the same RPG business rules" width="100%">
+<img src="docs/media/hero.jpg" alt="The same order 10027 on the real 5250 green screen (Mocha TN5250 on PUB400) and in the modern web app, both running on the same RPG business rules" width="100%">
 
-**[▶ Watch the 1-minute demo](docs/media/demo-1min.mp4)** · a real order through the RPG on PUB400: an RPG error on the exact line, the fix, the save, the audit trail and the 5250 view
+**[▶ Watch the 1-minute demo](docs/media/demo-1min.mp4)** · a real order on PUB400: created on the web (the RPG flags a bad quantity on the exact line), changed on the **real 5250 green screen**, and back on the web the audit trail says `U · 5250`
 
-<img src="docs/media/demo.gif" alt="Creating an order in the web app: the RPG rejects a quantity on the exact line, the quantity is fixed, and the order is saved by ORDSVC" width="80%">
+<img src="docs/media/demo.gif" alt="An order saved on the web opens on the real 5250 screen, is edited there, and the web then shows the new quantity with the audit entry U from 5250" width="80%">
 
 | 13 sprints | 84 automated tests | 0 business rules rewritten | 2 channels, 1 RPG core |
 |:---:|:---:|:---:|:---:|
@@ -46,11 +46,11 @@ It runs on **PUB400** (a public IBM i, V7R5) as two separate libraries, one per 
 
 ## See it
 
-| Dashboard | Order editor: the RPG checks every line |
+| The real 5250 (Mocha TN5250 on PUB400): the web's order, edited with the same RPG | Order editor: the RPG checks every line |
 |---|---|
-| <img src="docs/media/dashboard.jpg" alt="Dashboard: open order book, interactive order-value chart, live IBM i heartbeat"> | <img src="docs/media/order-editor.jpg" alt="Order editor for order 10027 with eight lines"> |
-| **The 5250 twin: the same orders in the ORDDSPF layout** | **How the web sits on IBM i** |
-| <img src="docs/media/green-screen-twin.jpg" alt="The orders list drawn in the 5250 green-screen layout"> | <img src="docs/media/architecture-dark.jpg" alt="Architecture diagram: browser, FastAPI, SQL procedures, RPG service programs, database and journal"> |
+| <img src="docs/media/real-5250-edit.jpg" alt="The real 5250 Order Entry screen in edit mode: quantity changed to 5, total recalculated to 96.000,00"> | <img src="docs/media/order-editor.jpg" alt="Order editor for order 10027 with eight lines"> |
+| **Dashboard (dark mode)** | **How the web sits on IBM i** |
+| <img src="docs/media/dashboard-dark.jpg" alt="Dashboard in dark mode: open order book, interactive order-value chart, live IBM i heartbeat"> | <img src="docs/media/architecture-dark.jpg" alt="Architecture diagram: browser, FastAPI, SQL procedures, RPG service programs, database and journal"> |
 
 ---
 
