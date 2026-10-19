@@ -143,4 +143,4 @@ the real backend:
 
 Verified on 2026-10-15 with Playwright in Edge: all 11 screens load real PUB400 data with no console
 errors; an order edit saved through the UI (ORDSVC SE) moved stock by the net change and was put back;
-44 Vitest tests; `npm run a11y` on real data.
+50 Vitest tests; `npm run a11y` on real data.

@@ -100,7 +100,7 @@ procedure created with `COMMIT(*NONE)` can't call RPG that opens commit-controll
 ## Tests
 
 ```sh
-.venv/Scripts/python -m pytest tests/unit          # 20 tests, no IBM i needed
+.venv/Scripts/python -m pytest tests/unit          # 23 tests, no IBM i needed
 .venv/Scripts/python -m pytest tests/integration   # 11 tests against IBM i (skipped if the tunnel is down)
 .venv/Scripts/ruff check app tests && .venv/Scripts/python -m mypy app
 ```

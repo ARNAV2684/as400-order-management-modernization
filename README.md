@@ -4,6 +4,15 @@
 
 **A complete IBM i (AS/400) order-entry system in RPG IV, then modernized for the web without rewriting its business rules.**
 
+<img src="docs/media/hero.jpg" alt="The same order 10027 in the 5250 green screen and in the modern web app, both running on the same RPG business rules" width="100%">
+
+**[▶ Watch the 1-minute demo](docs/media/demo-1min.mp4)** · a real order through the RPG on PUB400: an RPG error on the exact line, the fix, the save, the audit trail and the 5250 view
+
+<img src="docs/media/demo.gif" alt="Creating an order in the web app: the RPG rejects a quantity on the exact line, the quantity is fixed, and the order is saved by ORDSVC" width="80%">
+
+| 13 sprints | 84 automated tests | 0 business rules rewritten | 2 channels, 1 RPG core |
+|:---:|:---:|:---:|:---:|
+
 ![IBM i](https://img.shields.io/badge/IBM%20i-V7R5-054ADA?style=flat-square&logo=ibm&logoColor=white)
 ![RPG IV](https://img.shields.io/badge/RPG%20IV-ILE%20%7C%20mixed%20format-1F6FEB?style=flat-square)
 ![Db2 for i](https://img.shields.io/badge/Db2%20for%20i-SQL%20%7C%20journaling%20%7C%20commit-0F766E?style=flat-square)
@@ -32,6 +41,16 @@ It runs on **PUB400** (a public IBM i, V7R5) as two separate libraries, one per 
 |---|---|---|
 | `ARNAV27121` | **Green screen** (tag [`greenscreen-v2`](../../tree/greenscreen-v2)) | Sprints 1–7: the classic 5250 application, unchanged |
 | `ARNAV27122` | **Modern** (`main`) | The same system after a *strangler refactor*: rules in service programs, called by the 5250 screens **and** by stored procedures for the web |
+
+---
+
+## See it
+
+| Dashboard | Order editor: the RPG checks every line |
+|---|---|
+| <img src="docs/media/dashboard.jpg" alt="Dashboard: open order book, interactive order-value chart, live IBM i heartbeat"> | <img src="docs/media/order-editor.jpg" alt="Order editor for order 10027 with eight lines"> |
+| **The 5250 twin: the same orders in the ORDDSPF layout** | **How the web sits on IBM i** |
+| <img src="docs/media/green-screen-twin.jpg" alt="The orders list drawn in the 5250 green-screen layout"> | <img src="docs/media/architecture-dark.jpg" alt="Architecture diagram: browser, FastAPI, SQL procedures, RPG service programs, database and journal"> |
 
 ---
 
@@ -130,8 +149,8 @@ Every piece was compiled and exercised on a real IBM i:
 | SQL constraints | 18 deliberate violations, all refused (check, duplicate, FK insert, RESTRICT delete) |
 | Commit / rollback | Journal shows `SC … CM` for good saves and `SC … DR … RB` for rolled-back ones |
 | Batch report | `SBMJOB` → spooled file read back and checked |
-| REST API | 20 unit tests + **11 integration tests against PUB400**: CRUD, line/field error mapping, create → edit → stale edit (COM0039) → delete with exact stock, forced rollback leaves nothing, a locked row answers COM0038 instead of hanging, audit A/U/D from WEB |
-| Frontend | 44 Vitest tests; every screen checked in Edge against real PUB400 data; an order edit saved through the UI moved stock by the net change; 0 axe violations on 12 screens × 2 themes |
+| REST API | 23 unit tests + **11 integration tests against PUB400**: CRUD, line/field error mapping, create → edit → stale edit (COM0039) → delete with exact stock, forced rollback leaves nothing, a locked row answers COM0038 instead of hanging, audit A/U/D from WEB |
+| Frontend | 50 Vitest tests; every screen checked in Edge against real PUB400 data; an order edit saved through the UI moved stock by the net change; 0 axe violations on 13 screens × 2 themes |
 
 ### Real bugs found and fixed along the way
 
